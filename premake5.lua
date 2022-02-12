@@ -60,84 +60,7 @@ if isUWP then
 	outputFolder = outputFolder .. "_UWP"
 end
 
-solution "Optick"
-	language "C++"
-if _ACTION == "vs2017" then
-	systemversion "latest"
-end
-	startproject "ConsoleApp"
-if isVisualStudio then
-    	cppdialect "C++11"
-else
-	cppdialect "gnu++11"
-end
-	location ( outputFolder )
-	flags { "NoManifest", "FatalWarnings" }
-	warnings "Extra"
-    symbols "On"
-	optimization_flags = {}
-
-if isVisualStudio then
-	debugdir (outFolderRoot)
-	buildoptions { 
-		"/wd4127", -- Conditional expression is constant
-		"/wd4091"  -- 'typedef ': ignored on left of '' when no variable is declared
-	}
-end
-
-if isUWP then
-	defines { "OPTICK_UWP=1" }
-end
-
-	defines { "USE_OPTICK=1"}
-	defines { "OPTICK_FIBERS=1"}
-
-	local config_list = {
-		"Release",
-		"Debug",
-	}
-
-	local platform_list = {
-		"x64",
-	}
-
-	configurations(config_list)
-	platforms(platform_list)
-
-
--- CONFIGURATIONS
-
-if _ACTION == "vs2010" then
-defines { "_DISABLE_DEPRECATE_STATIC_CPPLIB", "_STATIC_CPPLIB"}
-end
-
-configuration "Release"
-	targetdir(outFolderRoot .. "/Native/Release")
-	defines { "NDEBUG", "MT_INSTRUMENTED_BUILD" }
-	flags { optimization_flags }
-    optimize "Speed"
-
-configuration "Debug"
-	targetdir(outFolderRoot .. "/Native/Debug")
-	defines { "_DEBUG", "_CRTDBG_MAP_ALLOC", "MT_INSTRUMENTED_BUILD" }
-
-configuration "linux"
-    links { "pthread" }
-
---  give each configuration/platform a unique output directory
-
-for _, config in ipairs(config_list) do
-	for _, plat in ipairs(platform_list) do
-		configuration { config, plat }
-			objdir    ( outputFolder .. "/Temp/" )
-			targetdir ( outFolderRoot .. plat .. "/" .. config )
-	end
-end
-
-os.mkdir("./" .. outFolderRoot)
-
-
-
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- SUBPROJECTS
 
@@ -145,11 +68,13 @@ project "OptickCore"
 	uuid "830934D9-6F6C-C37D-18F2-FB3304348F00"
 	defines { "_CRT_SECURE_NO_WARNINGS", "OPTICK_LIB=1" }
 if _ACTION == "vs2017" then
-	systemversion "10.0.15063.0"
+	systemversion "latest"
 end
 
  	kind "SharedLib"
  	defines { "OPTICK_EXPORTS" }
+	
+	targetdir ("../../../bin/" .. outputdir .. "/Playground")
 
 	includedirs
 	{
